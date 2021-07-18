@@ -1,7 +1,7 @@
 name=VLNBERT-train-Prevalent
 export LD_LIBRARY_PATH=build_vlnbert
 
-flag="--vlnbert prevalent --fast
+flag="--vlnbert prevalent
 
       --aug data/prevalent/prevalent_aug.json
       --test_only 0
