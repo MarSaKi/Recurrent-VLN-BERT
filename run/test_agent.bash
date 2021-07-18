@@ -1,5 +1,5 @@
 name=VLNBERT-test-Prevalent
-export LD_LIBRARY_PATH=build_vlnbert
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:build_vlnbert
 
 flag="--vlnbert prevalent
 

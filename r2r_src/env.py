@@ -1,7 +1,7 @@
 ''' Batched Room-to-Room navigation environment '''
 
 import sys
-sys.path.append('build_vlnbert/')
+sys.path.append('build_vlnbert')
 import MatterSim
 import csv
 import numpy as np

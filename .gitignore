@@ -1,5 +1,6 @@
 .ftpignore
 .ftpconfig
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -15,6 +16,7 @@ data/R2R_val_seen.json
 data/R2R_val_unseen.json
 data/prevalent/*
 !data/prevalent/.gitkeep
+data/ObjSpeaker
 
 img_features/*
 !img_features/.gitkeep

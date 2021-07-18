@@ -1,9 +1,9 @@
-name=VLNBERT-train-Prevalent
-export LD_LIBRARY_PATH=build_vlnbert
+name=vlnbert.augCsz
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:build_vlnbert
 
 flag="--vlnbert prevalent
 
-      --aug data/prevalent/prevalent_aug.json
+      --aug data/ObjSpeaker/prevalent_aug_csz.json
       --test_only 0
 
       --train auglistener

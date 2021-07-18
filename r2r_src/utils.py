@@ -3,7 +3,7 @@
 import os
 import sys
 import re
-sys.path.append('build_vlnbert/')
+sys.path.append('build_vlnbert')
 import MatterSim
 import string
 import json
