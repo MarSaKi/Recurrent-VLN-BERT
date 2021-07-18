@@ -1,8 +1,7 @@
 ''' Batched Room-to-Room navigation environment '''
 
 import sys
-sys.path.append('buildpy36')
-sys.path.append('Matterport_Simulator/build/')
+sys.path.append('build_vlnbert/')
 import MatterSim
 import csv
 import numpy as np
@@ -45,6 +44,7 @@ class EnvBatch():
             self.image_w = 640
             self.image_h = 480
             self.vfov = 60
+        self.featurized_scans = set([key.split("_")[0] for key in list(self.features.keys())])
         self.sims = []
         for i in range(batch_size):
             sim = MatterSim.Simulator()
@@ -106,6 +106,8 @@ class R2RBatch():
             for i_item, item in enumerate(load_datasets([split])):
                 if args.test_only and i_item == 64:
                     break
+                if item['scan'] not in self.env.featurized_scans:   # For fast training
+                    continue
                 if "/" in split:
                     try:
                         new_item = dict(item)

@@ -24,13 +24,16 @@ log_dir = 'snap/%s' % args.name
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-IMAGENET_FEATURES = 'img_features/ResNet-152-imagenet.tsv'
-PLACE365_FEATURES = 'img_features/ResNet-152-places365.tsv'
+IMAGENET_FEATURES = 'img_features/ResNet-152-imagenet.h5'
+PLACE365_FEATURES = 'img_features/ResNet-152-places365.h5'
 
 if args.features == 'imagenet':
     features = IMAGENET_FEATURES
 elif args.features == 'places365':
     features = PLACE365_FEATURES
+if args.fast_train:
+    name, ext = os.path.splitext(features)
+    features = name + "-fast" + ext
 
 feedback_method = args.feedback  # teacher or sample
 
@@ -41,6 +44,8 @@ print(args); print('')
 def train(train_env, tok, n_iters, log_every=2000, val_envs={}, aug_env=None):
     writer = SummaryWriter(log_dir=log_dir)
     listner = Seq2SeqAgent(train_env, "", tok, args.maxAction)
+    if args.fast_train:
+        log_every = 40
 
     record_file = open('./logs/' + args.name + '.txt', 'a')
     record_file.write(str(args) + '\n\n')
@@ -56,7 +61,7 @@ def train(train_env, tok, n_iters, log_every=2000, val_envs={}, aug_env=None):
             print("\nLOAD the model from {}, iteration ".format(args.load, load_iter))
 
     start = time.time()
-    print('\nListener training starts, start iteration: %s' % str(start_iter))
+    print('Listener training starts, start iteration: %s' % str(start_iter))
 
     best_val = {'val_unseen': {"spl": 0., "sr": 0., "state":"", 'update':False}}
 
@@ -66,6 +71,7 @@ def train(train_env, tok, n_iters, log_every=2000, val_envs={}, aug_env=None):
         iter = idx + interval
 
         # Train for log_every interval
+        t0 = time.time()
         if aug_env is None:
             listner.env = train_env
             listner.train(interval, feedback=feedback_method)  # Train interval iters
@@ -83,6 +89,8 @@ def train(train_env, tok, n_iters, log_every=2000, val_envs={}, aug_env=None):
                 listner.train(1, feedback=feedback_method)
 
                 print_progress(jdx, jdx_length, prefix='Progress:', suffix='Complete', bar_length=50)
+        t1 = time.time()
+        print('iter: {}, time: {:.3f}'.format(iter, t1 - t0))
 
         # Log the training stats to tensorboard
         total = max(sum(listner.logs['total']), 1)
@@ -100,7 +108,7 @@ def train(train_env, tok, n_iters, log_every=2000, val_envs={}, aug_env=None):
         # print("total_actions", total, ", max_length", length)
 
         # Run validation
-        loss_str = "iter {}".format(iter)
+        loss_str = ""
         for env_name, (env, evaluator) in val_envs.items():
             listner.env = env
 
@@ -108,7 +116,7 @@ def train(train_env, tok, n_iters, log_every=2000, val_envs={}, aug_env=None):
             listner.test(use_dropout=False, feedback='argmax', iters=None)
             result = listner.get_results()
             score_summary, _ = evaluator.score(result)
-            loss_str += ", %s " % env_name
+            loss_str += "{:<11s} : ".format(env_name)
             for metric, val in score_summary.items():
                 if metric in ['spl']:
                     writer.add_scalar("spl/%s" % env_name, val, idx)
@@ -119,7 +127,8 @@ def train(train_env, tok, n_iters, log_every=2000, val_envs={}, aug_env=None):
                         elif (val == best_val[env_name]['spl']) and (score_summary['success_rate'] > best_val[env_name]['sr']):
                             best_val[env_name]['spl'] = val
                             best_val[env_name]['update'] = True
-                loss_str += ', %s: %.4f' % (metric, val)
+                loss_str += ' %s: %.4f' % (metric, val)
+            loss_str += '\n'
 
         record_file = open('./logs/' + args.name + '.txt', 'a')
         record_file.write(loss_str + '\n')
@@ -127,14 +136,15 @@ def train(train_env, tok, n_iters, log_every=2000, val_envs={}, aug_env=None):
 
         for env_name in best_val:
             if best_val[env_name]['update']:
-                best_val[env_name]['state'] = 'Iter %d %s' % (iter, loss_str)
+                best_val[env_name]['state'] = 'Iter %d \n %s' % (iter, loss_str)
                 best_val[env_name]['update'] = False
                 listner.save(idx, os.path.join("snap", args.name, "state_dict", "best_%s" % (env_name)))
             else:
                 listner.save(idx, os.path.join("snap", args.name, "state_dict", "latest_dict"))
 
-        print(('%s (%d %d%%) %s' % (timeSince(start, float(iter)/n_iters),
-                                             iter, float(iter)/n_iters*100, loss_str)))
+        print(('%s (%d %d%%)' % (timeSince(start, float(iter)/n_iters),
+                                             iter, float(iter)/n_iters*100)))
+        print(('\n%s') % loss_str)
 
         if iter % 1000 == 0:
             print("BEST RESULT TILL NOW")

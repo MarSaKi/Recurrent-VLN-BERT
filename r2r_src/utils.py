@@ -3,7 +3,7 @@
 import os
 import sys
 import re
-sys.path.append('Matterport_Simulator/build/')
+sys.path.append('build_vlnbert/')
 import MatterSim
 import string
 import json
@@ -249,34 +249,13 @@ def timeSince(since, percent):
     return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
 
 def read_img_features(feature_store, test_only=False):
-    import csv
-    import base64
-    from tqdm import tqdm
-
-    print("Start loading the image feature ... (~50 seconds)")
-    start = time.time()
-
-    if "detectfeat" in args.features:
-        views = int(args.features[10:])
-    else:
-        views = 36
-
-    args.views = views
-
-    tsv_fieldnames = ['scanId', 'viewpointId', 'image_w', 'image_h', 'vfov', 'features']
-
-    if not test_only:
-        features = {}
-        with open(feature_store, "r") as tsv_in_file:     # Open the tsv file.
-            reader = csv.DictReader(tsv_in_file, delimiter='\t', fieldnames=tsv_fieldnames)
-            for item in reader:
-                long_id = item['scanId'] + "_" + item['viewpointId']
-                features[long_id] = np.frombuffer(base64.decodestring(item['features'].encode('ascii')),
-                                                   dtype=np.float32).reshape((views, -1))   # Feature of long_id is (36, 2048)
-    else:
-        features = None
-
-    print("Finish Loading the image feature from %s in %0.4f seconds" % (feature_store, time.time() - start))
+    import h5py
+    args.views = 36
+    print("Read from " + feature_store)
+    features = {}
+    f = h5py.File(feature_store, 'r')
+    for k, v in f.items():
+        features[k] = v[:]
     return features
 
 def read_candidates(candidates_store):
@@ -560,7 +539,7 @@ def print_progress(iteration, total, prefix='', suffix='', decimals=1, bar_lengt
     str_format = "{0:." + str(decimals) + "f}"
     percents = str_format.format(100 * (iteration / float(total)))
     filled_length = int(round(bar_length * iteration / float(total)))
-    bar = '█' * filled_length + '-' * (bar_length - filled_length)
+    bar = '*' * filled_length + '-' * (bar_length - filled_length)
 
     sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
 

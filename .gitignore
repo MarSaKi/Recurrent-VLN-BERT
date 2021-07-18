@@ -24,3 +24,6 @@ snap/*
 
 logs/*
 !logs/.gitkeep
+
+/build_vlnbert
+/Prevalent

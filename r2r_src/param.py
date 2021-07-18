@@ -8,7 +8,7 @@ class Param:
 
         # General
         self.parser.add_argument('--test_only', type=int, default=0, help='fast mode for testing')
-
+        self.parser.add_argument("--fast", dest="fast_train", action="store_const", default=False, const=True)
         self.parser.add_argument('--iters', type=int, default=300000, help='training iterations')
         self.parser.add_argument('--name', type=str, default='default', help='experiment id')
         self.parser.add_argument('--vlnbert', type=str, default='oscar', help='oscar or prevalent')
@@ -80,7 +80,7 @@ param = Param()
 args = param.args
 
 args.description = args.name
-args.IMAGENET_FEATURES = 'img_features/ResNet-152-imagenet.tsv'
+args.IMAGENET_FEATURES = 'img_features/ResNet-152-imagenet.h5'
 args.log_dir = 'snap/%s' % args.name
 
 if not os.path.exists(args.log_dir):
