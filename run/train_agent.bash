@@ -3,7 +3,7 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:build_vlnbert
 
 flag="--vlnbert prevalent
 
-      --aug data/ObjSpeaker/prevalent_aug_csz.json
+      --aug data/ObjSpeaker/prevalent_aug_ad.json
       --test_only 0
 
       --train auglistener
