@@ -1,9 +1,9 @@
-name=vlnbert-origin-single
+name=vlnbert-sky-1M
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:build_vlnbert
 
 flag="--vlnbert prevalent
 
-      --aug data/ObjSpeaker/origin_single_tok.json
+      --aug data/ObjSpeaker/sky_pred_sep_tok.json
       --test_only 0
 
       --train auglistener
